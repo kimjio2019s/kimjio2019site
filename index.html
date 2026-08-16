@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지오24</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f6f7;
+        }
+        /* 상단 헤더 영역 */
+        header {
+            background-color: #ffffff;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e1e4e6;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e88e5;
+        }
+        .search-container input {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .search-container button {
+            padding: 8px 12px;
+            font-size: 14px;
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        /* 메인 콘텐츠 영역 */
+        main {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /* 메뉴 버튼 스타일 */
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .menu-btn {
+            padding: 15px;
+            font-size: 16px;
+            text-align: left;
+            background-color: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .menu-btn:hover {
+            background-color: #e3f2fd;
+        }
+        .exit-btn {
+            background-color: #ffebee;
+            color: #c62828;
+            border-color: #ffcdd2;
+        }
+        .exit-btn:hover {
+            background-color: #ffcdd2;
+        }
+        /* 입력 폼 및 결과 창 스타일 (기본 숨김 처리) */
+        .step-container {
+            display: none;
+        }
+        .step-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .next-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .next-btn:hover {
+            background-color: #1565c0;
+        }
+        
+        /* 뱅글뱅이가 도는 로딩창 스타일 */
+        .loading-container {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #1e88e5;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 완료 메시지 */
+        .success-message {
+            text-align: center;
+            padding: 30px 0;
+        }
+        .success-message h2 {
+            color: #2e7d32;
+            font-size: 22px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 상단 헤더 -->
+    <header>
+        <div class="logo">지오24</div>
+        <div class="search-container">
+            <input type="text" placeholder="검색어를 입력하세요">
+            <button>검색</button>
+        </div>
+    </header>
+
+    <!-- 메인 창 -->
+    <main>
+        <!-- 1단계: 메뉴 선택 화면 -->
+        <div id="menuScreen" class="menu-list">
+            <button class="menu-btn" onclick="startProcess('여권 만들기')">여권 만들기</button>
+            <button class="menu-btn" onclick="startProcess('신분증 갱신')">신분증 갱신</button>
+            <button class="menu-btn" onclick="startProcess('여권 갱신')">여권 갱신</button>
+            <button class="menu-btn exit-btn" onclick="exitPage()">나가기</button>
+        </div>
+
+        <!-- 2단계: 생년월일 입력 화면 -->
+        <div id="birthScreen" class="step-container">
+            <div class="step-title"><span id="selectedMenu1"></span> - 본인 인증</div>
+            <div class="input-group">
+                <label for="birthDate">생년월일 8자리를 입력해주세요</label>
+                <input type="number" id="birthDate" placeholder="예: 19950101" min="10000000" max="99991231">
+            </div>
+            <button class="next-btn" onclick="goToPhoneScreen()">다음</button>
+        </div>
+
+        <!-- 3단계: 휴대폰 번호 입력 화면 -->
+        <div id="phoneScreen" class="step-container">
+            <div class="step-title"><span id="selectedMenu2"></span> - 연락처 입력</div>
+            <div class="input-group">
+                <label for="phoneNumber">휴대폰 번호를 입력해주세요 (- 없이 입력)</label>
+                <input type="tel" id="phoneNumber" placeholder="예: 01012345678">
+            </div>
+            <button class="next-btn" onclick="goToLoadingScreen()">완료</button>
+        </div>
+
+        <!-- 3.5단계: 로딩 화면 (문구 수정됨) -->
+        <div id="loadingScreen" class="loading-container">
+            <div class="spinner"></div>
+            <p style="color: #666; font-size: 16px; line-height: 1.6;">안전한 처리를 위해 정보를 확인 중입니다.<br>잠시만 기다려주세요... (약 10~50초 소요)</p>
+        </div>
+
+        <!-- 4단계: 완료 화면 -->
+        <div id="completeScreen" class="step-container success-message">
+            <h2>안전하게 온라인 갱신 또는 발급이<br>완료되었습니다.</h2>
+            <button class="next-btn" style="margin-top: 20px; background-color: #757575;" onclick="resetAll()">처음으로 가기</button>
+        </div>
+    </main>
+
+    <!-- 화면 제어 스크립트 -->
+    <script>
+        let currentMenu = "";
+
+        // 메뉴 선택 시 생년월일 입력창 띄우기
+        function startProcess(menuName) {
+            currentMenu = menuName;
+            document.getElementById('selectedMenu1').innerText = menuName;
+            document.getElementById('selectedMenu2').innerText = menuName;
+            
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('birthScreen').style.display = 'block';
+        }
+
+        // 생년월일 입력 후 휴대폰 입력창으로 이동
+        function goToPhoneScreen() {
+            const birthInput = document.getElementById('birthDate').value;
+            if (birthInput.length !== 8) {
+                alert('생년월일 8자리를 정확히 입력해주세요.');
+                return;
+            }
+            document.getElementById('birthScreen').style.display = 'none';
+            document.getElementById('phoneScreen').style.display = 'block';
+        }
+
+        // 휴대폰 번호 입력 후 로딩 시작 (30초 대기)
+        function goToLoadingScreen() {
+            const phoneInput = document.getElementById('phoneNumber').value;
+            if (phoneInput.trim() === '') {
+                alert('휴대폰 번호를 입력해주세요.');
+                return;
+            }
+            
+            document.getElementById('phoneScreen').style.display = 'none';
+            document.getElementById('loadingScreen').style.display = 'block';
+
+            // 정확히 30초(30000밀리초) 후에 완료 화면으로 이동
+            setTimeout(function() {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('completeScreen').style.display = 'block';
+            }, 30000); 
+        }
+
+        // 초기 화면으로 리셋
+        function resetAll() {
+            document.getElementById('birthDate').value = '';
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('completeScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'flex';
+        }
+
+        // 나가기 버튼 작동
+        function exitPage() {
+            if (confirm("창을 닫으시겠습니까?")) {
+                window.close();
+                alert("페이지가 종료되었습니다. 브라우저 탭을 닫아주세요.");
+            }
+        }
+    </script>
+</body>
+</html>
+
